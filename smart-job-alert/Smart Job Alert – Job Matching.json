@@ -1,0 +1,1174 @@
+{
+  "name": "Smart Job Alert – Job Matching",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        -384,
+        -240
+      ],
+      "id": "3d627a31-dea1-4acd-a6b2-da2e1d43b163",
+      "name": "Schedule Trigger",
+      "notes": "“Tous les jours à 9h, ce workflow démarre tout seul”"
+    },
+    {
+      "parameters": {
+        "formTitle": "Inscription aux offres d'emploi quotidiennes",
+        "formDescription": "Entrez votre email pour recevoir chaque jour les meilleures offres filtrées",
+        "formFields": {
+          "values": [
+            {
+              "fieldLabel": "Votre adresse email",
+              "fieldType": "email",
+              "requiredField": true
+            }
+          ]
+        },
+        "options": {
+          "appendAttribution": false,
+          "buttonLabel": "S'inscrire"
+        }
+      },
+      "id": "871f868c-66c5-4427-bceb-96dc1cad74c6",
+      "name": "Collect User Email",
+      "type": "n8n-nodes-base.formTrigger",
+      "typeVersion": 2.5,
+      "position": [
+        -544,
+        416
+      ],
+      "webhookId": "7b8a92ae-43c7-4baa-be9f-62ef9f173eea"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "2547c923-4a6a-4130-a372-1107273e2dac",
+      "name": "Check Email Format",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -160,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "url": "=https://disify.com/api/email/{{ $json.email }}",
+        "options": {}
+      },
+      "id": "395a4f5d-bae9-4a27-835d-4862fe203afe",
+      "name": "Check Disposable Email",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        48,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.disposable }}",
+              "rightValue": false,
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "c0c2fe98-bfe1-4201-bede-bed12665b62d",
+      "name": "Check If Valid Email",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        272,
+        320
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e806e3a0-7019-433f-9a79-b433bb6e083d",
+              "name": "submittedAt",
+              "value": "={{ $('Collect User Email').item.json.submittedAt }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "682a28ed-de78-4988-bfce-c8231655b22a",
+      "name": "Prepare Email Data",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        496,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "dataTableId": {
+          "__rl": true,
+          "value": "4ZC0DXrbapY6I5KY",
+          "mode": "list",
+          "cachedResultName": "subscribers",
+          "cachedResultUrl": "/projects/ZsypYHo0iAJRvFg3/datatables/4ZC0DXrbapY6I5KY"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "subscribed_at": "={{ $json.submittedAt }}",
+            "email": "={{ $('Check Email Format').item.json.email }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "subscribed_at",
+              "displayName": "subscribed_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "dateTime",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "id": "b41fc52b-aadb-4ff5-98e3-114356dd7ebf",
+      "name": "Store User Email",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        704,
+        224
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "value": "4ZC0DXrbapY6I5KY",
+          "mode": "list",
+          "cachedResultName": "subscribers",
+          "cachedResultUrl": "/projects/ZsypYHo0iAJRvFg3/datatables/4ZC0DXrbapY6I5KY"
+        },
+        "returnAll": true
+      },
+      "id": "ef0e6bd0-3312-4607-a4aa-b705c009c85e",
+      "name": "Get All Subscribers",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        -160,
+        -144
+      ],
+      "executeOnce": true,
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "email",
+        "options": {}
+      },
+      "id": "65e36bdc-e2d2-445a-8697-705b7079ed7c",
+      "name": "Split Subscribers",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        64,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "3a4b4fd9-9c89-4533-904c-04db27f160d0",
+      "name": "Collect All Offers",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1632,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict"
+          },
+          "conditions": [
+            {
+              "id": "id-1",
+              "leftValue": "={{ $json.data }}",
+              "operator": {
+                "type": "array",
+                "operation": "notEmpty"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "17e33fc8-85eb-4624-8fb2-cd20941ca0f3",
+      "name": "Check If Offers Found",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1856,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "id-1",
+              "name": "email",
+              "value": "={{ $('Split Subscribers').item.json.email }}",
+              "type": "string"
+            },
+            {
+              "id": "id-2",
+              "name": "subject",
+              "value": "Vos offres d'emploi du jour",
+              "type": "string"
+            },
+            {
+              "id": "id-3",
+              "name": "offers_html",
+              "value": "={{ $('Collect All Offers').item.json.map(offer => `<div style=\"margin-bottom: 20px; padding: 15px; border: 1px solid #ddd; border-radius: 5px;\"><h3>${offer.title}</h3><p><strong>Entreprise:</strong> ${offer.company}</p><p><a href=\"${offer.url}\" style=\"color: #0066cc;\">Voir l'offre</a></p></div>`).join('') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0b605a8d-5e1c-4237-82ca-9ca38bdc1637",
+      "name": "Prepare Email Content",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        2080,
+        -144
+      ]
+    },
+    {
+      "parameters": {
+        "content": "⏰ **CRON QUOTIDIEN**\nChaque jour à 9H",
+        "height": 200,
+        "width": 204
+      },
+      "id": "b3e2588e-0c97-4f63-8c11-cfd0a6843da4",
+      "name": "⏰ DÉCLENCHEMENT",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -432,
+        -304
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 📝 FORMULAIRE WEB\nCollecte email utilisateur\n",
+        "height": 248,
+        "width": 220
+      },
+      "id": "018915de-0d48-4a50-aa91-2fea38817ffd",
+      "name": "📝 COLLECTE",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -608,
+        304
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## DATA INGESTION\n\nAPIs, Subscribers, Sources externes",
+        "height": 444,
+        "width": 844,
+        "color": 5
+      },
+      "id": "fa4d135a-2f2c-4af4-bf57-962c0b185544",
+      "name": "🔍 RÉCUPÉRATION API",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -192,
+        -336
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## DATA PROCESSING\n\nClean, Filter, Score",
+        "height": 332,
+        "width": 860,
+        "color": 6
+      },
+      "id": "d6823c8d-2e2f-4f4b-a133-76541453e731",
+      "name": "🧹 NETTOYAGE",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        704,
+        -288
+      ]
+    },
+    {
+      "parameters": {
+        "content": "📊 **Catégorisation**\n3 catégories:\n• Très pertinent (≥ 7)\n• Moyen (≥ 4)\n• Ignorer (< 4)",
+        "height": 292,
+        "width": 208,
+        "color": 7
+      },
+      "id": "eef26ad9-dd60-4020-8eba-d33689f4e236",
+      "name": "📊 CLASSIFICATION",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1344,
+        -272
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## DELIVERY & OUTPUT\n\nEmail, Slack, DB",
+        "height": 324,
+        "width": 900,
+        "color": 2
+      },
+      "id": "c0898eb1-ecf7-4f56-9b1a-348fb45f9ade",
+      "name": "📧 ENVOI EMAIL",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        1568,
+        -288
+      ]
+    },
+    {
+      "parameters": {
+        "content": " ##  ✅DOUBLE VÉRIFICATION\n1. Format email valide\n2. Email non jetable\n   (API Kickbox gratuite)\n\n→ **Prépare données**",
+        "height": 544,
+        "width": 832,
+        "color": 6
+      },
+      "id": "49996b35-6e3e-48f7-adc5-c1ad6d899e0c",
+      "name": "✅ VALIDATION",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -208,
+        208
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 💾 **DATA TABLE**\n\n\n\n\n\n\n\n\n\n\n",
+        "height": 188,
+        "width": 208,
+        "color": 3
+      },
+      "id": "77ff309e-6a58-4860-9b5a-60db7b779e5a",
+      "name": "💾 STOCKAGE",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        656,
+        176
+      ]
+    },
+    {
+      "parameters": {
+        "url": "https://remotive.com/api/remote-jobs",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        288,
+        -240
+      ],
+      "id": "87760377-c8f6-4ead-ba1b-15b680ea5d29",
+      "name": "Fetch Jobs – Remotive"
+    },
+    {
+      "parameters": {
+        "url": "https://remoteok.com/api",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "User-Agent",
+              "value": "n8n"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [
+        288,
+        -48
+      ],
+      "id": "e9c57769-59a9-432a-b45f-5037e732c820",
+      "name": "Fetch Jobs – RemoteOK"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        512,
+        -144
+      ],
+      "id": "1a2a74bc-e371-4a68-af6e-71d4cd35007a",
+      "name": "Merge Job Sources"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "b199ce67-d549-4997-bdad-efdf9785afeb",
+              "name": "title",
+              "value": "={{ $json.jobs[0].title }}",
+              "type": "string"
+            },
+            {
+              "id": "cb2d9853-d546-48f6-bdcd-17e431a7cda9",
+              "name": "company",
+              "value": "={{ $json.jobs[0].company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "803e3d8b-4d38-4d00-af36-784846416924",
+              "name": "description",
+              "value": "={{ $json.jobs[0].description }}",
+              "type": "string"
+            },
+            {
+              "id": "088dc4b6-e5f8-4c16-903d-6f83c525e9be",
+              "name": "url",
+              "value": "={{ $json.jobs[1].url }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        736,
+        -144
+      ],
+      "id": "930ea638-3de2-4bde-b215-214816651cbc",
+      "name": "Normalize Job Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7375b4db-a0b4-4e07-941d-25582c30edc1",
+              "leftValue": "={{ $json.description.toLowerCase() }}",
+              "rightValue": "automation",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "c575ae8d-1bd2-4aae-9399-09a7184a7810",
+              "leftValue": "={{ $json.description.toLowerCase() }}",
+              "rightValue": "network",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "eff7e2fa-53ef-4910-9645-6f3f5c68c0cf",
+              "leftValue": "={{ $json.description.toLowerCase() }}",
+              "rightValue": "dev",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            },
+            {
+              "id": "2d607dae-f2e6-4185-85d5-88c70053582d",
+              "leftValue": "={{ $json.description.toLowerCase() }}",
+              "rightValue": "software",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        960,
+        -144
+      ],
+      "id": "e6b4a40f-fb99-47c5-be81-34de92b90d7d",
+      "name": "Filter Relevant Jobs"
+    },
+    {
+      "parameters": {
+        "jsCode": "const text = $json.description.toLowerCase();\n\nlet score = 0;\n\nif (text.includes(\"automation\")) score += 3;\nif (text.includes(\"api\")) score += 2;\nif (text.includes(\"javascript\")) score += 2;\nif (text.includes(\"backend\")) score += 2;\nif (text.includes(\"senior\")) score += 3;\n\nreturn {\n  ...$json,\n  score\n};"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1184,
+        -144
+      ],
+      "id": "0ba0e5c1-99ef-40b4-9a85-7f065ee25528",
+      "name": "Compute Job Score",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.score }}",
+                    "rightValue": 7,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    },
+                    "id": "67e87cd9-f8f0-4a3b-9866-2ffa386aa048"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Très pertinent"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "829f42b1-de41-49e1-9952-b60c6c7dc037",
+                    "leftValue": "={{ $json.score }}",
+                    "rightValue": 4,
+                    "operator": {
+                      "type": "number",
+                      "operation": "gte"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Moyen"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "04574105-8c6b-44a8-8400-e12474b2d200",
+                    "leftValue": "={{ $json.score }}",
+                    "rightValue": 4,
+                    "operator": {
+                      "type": "number",
+                      "operation": "lt"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "Ignorer"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        1408,
+        -160
+      ],
+      "id": "78192285-6c00-4bf1-bb05-b851e05e0d73",
+      "name": "Classify Job Priority"
+    },
+    {
+      "parameters": {
+        "fromEmail": "<__PLACEHOLDER_VALUE__sender_email__>",
+        "toEmail": "={{ $json.email }}",
+        "subject": "={{ $json.subject }}",
+        "html": "={{ $json.offers_html }}",
+        "options": {}
+      },
+      "id": "43a5dea9-90d5-4888-831e-994d9247f026",
+      "name": "Send Daily Job Alert",
+      "type": "n8n-nodes-base.emailSend",
+      "typeVersion": 2.1,
+      "position": [
+        2304,
+        -144
+      ],
+      "webhookId": "07ea5f2e-0440-47dd-a60e-0cf43db89aee"
+    },
+    {
+      "parameters": {
+        "errorMessage": "Invalid email format – subscription rejected"
+      },
+      "id": "f65fc612-b3cd-4381-b054-d4d2b10ba4e9",
+      "name": "Invalid Email Format",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        48,
+        512
+      ]
+    },
+    {
+      "parameters": {
+        "errorMessage": "Disposable email detected – subscription rejected"
+      },
+      "id": "a73c6640-b664-4333-b813-eec53bcc7dc7",
+      "name": "Disposable Email Rejected",
+      "type": "n8n-nodes-base.stopAndError",
+      "typeVersion": 1,
+      "position": [
+        496,
+        416
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 📋 Documentation\n✅ Collects user emails via form\n✅ Validates and stores subscribers\n✅ Fetches jobs from multiple APIs daily\n✅ Cleans, filters and scores offers\n✅ Sends personalized daily job alerts\n\n🎯 **Features:**\n• Email validation (format + disposable check)\n• Error handling with Stop and Error\n• Manual test mode available\n• Conditional sending (only if offers found)\n• Intelligent scoring system",
+        "height": 300,
+        "width": 368
+      },
+      "id": "037bb935-f3ef-4984-a6a8-74ea34ff5f75",
+      "name": "Workflow Documentation",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2576,
+        -496
+      ]
+    },
+    {
+      "parameters": {
+        "path": "test-job-fetch",
+        "options": {}
+      },
+      "id": "68574961-ba60-481d-ba10-7805096be724",
+      "name": "Manual Test Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -384,
+        -48
+      ],
+      "webhookId": "40ee1536-e772-42f2-9138-b83d589b3b46"
+    },
+    {
+      "parameters": {
+        "content": "# WORKFLOW QUOTIDIEN\n\n",
+        "height": 532,
+        "width": 3120,
+        "color": 3
+      },
+      "id": "fd6c43f0-cdc1-4444-bd6e-b8edb5cce311",
+      "name": "📅 WORKFLOW QUOTIDIEN - Récupération et distribution des offres",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        -432
+      ]
+    },
+    {
+      "parameters": {
+        "content": "# ONBOARDING UTILISATEUR\n\n**📝 Formulaire web d'inscription**\n**✅ Validation email (format + jetable)**\n**💾 Stockage dans Data Table**",
+        "height": 624,
+        "width": 2000,
+        "color": 4
+      },
+      "id": "ce71cf7c-4443-4641-9390-39e7c67074ad",
+      "name": "👤 ONBOARDING UTILISATEUR - Inscription et validation email",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -624,
+        144
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "xlsx",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [
+        896,
+        224
+      ],
+      "id": "14a2fb32-c215-4e44-9440-1b5379b7cd66",
+      "name": "Convert to File"
+    },
+    {
+      "parameters": {
+        "content": "### 🧪 MODE TEST",
+        "width": 224,
+        "color": 4
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -448,
+        -80
+      ],
+      "id": "c03c2b9a-3b23-4c24-8839-c9e1d6b48c5d",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8d09fbd9-5474-4fea-8a40-63aef944f73b",
+              "name": "email",
+              "value": "={{$json[\"Votre adresse email\"]}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -352,
+        416
+      ],
+      "id": "70b5ecb2-67bb-4a02-991e-ea41f261ca35",
+      "name": "Normalize Email Field"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "73bd99ca-a4e2-44ca-999a-62a0ce83e845",
+              "name": "user_email",
+              "value": "={{ $json['Votre adresse email'] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -304,
+        560
+      ],
+      "id": "164a2ffb-17cb-4db4-984a-2fbe2ff0c33f",
+      "name": "Store User Email1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get All Subscribers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Valid Email": {
+      "main": [
+        [
+          {
+            "node": "Prepare Email Data",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Disposable Email Rejected",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect User Email": {
+      "main": [
+        [
+          {
+            "node": "Normalize Email Field",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Store User Email1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Email Format": {
+      "main": [
+        [
+          {
+            "node": "Check Disposable Email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Invalid Email Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check Disposable Email": {
+      "main": [
+        [
+          {
+            "node": "Check If Valid Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email Data": {
+      "main": [
+        [
+          {
+            "node": "Store User Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get All Subscribers": {
+      "main": [
+        [
+          {
+            "node": "Split Subscribers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Subscribers": {
+      "main": [
+        [
+          {
+            "node": "Fetch Jobs – Remotive",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Fetch Jobs – RemoteOK",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect All Offers": {
+      "main": [
+        [
+          {
+            "node": "Check If Offers Found",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check If Offers Found": {
+      "main": [
+        [
+          {
+            "node": "Prepare Email Content",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Prepare Email Content": {
+      "main": [
+        [
+          {
+            "node": "Send Daily Job Alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Jobs – Remotive": {
+      "main": [
+        [
+          {
+            "node": "Merge Job Sources",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fetch Jobs – RemoteOK": {
+      "main": [
+        [
+          {
+            "node": "Merge Job Sources",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge Job Sources": {
+      "main": [
+        [
+          {
+            "node": "Normalize Job Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Job Fields": {
+      "main": [
+        [
+          {
+            "node": "Filter Relevant Jobs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter Relevant Jobs": {
+      "main": [
+        [
+          {
+            "node": "Compute Job Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Compute Job Score": {
+      "main": [
+        [
+          {
+            "node": "Classify Job Priority",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Classify Job Priority": {
+      "main": [
+        [
+          {
+            "node": "Collect All Offers",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [],
+        [
+          {
+            "node": "Collect All Offers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Manual Test Trigger": {
+      "main": [
+        [
+          {
+            "node": "Get All Subscribers",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store User Email": {
+      "main": [
+        [
+          {
+            "node": "Convert to File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize Email Field": {
+      "main": [
+        [
+          {
+            "node": "Check Email Format",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store User Email1": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "20b2ea13-e1df-458e-a16c-12398fce8137",
+  "meta": {
+    "instanceId": "a43d0fa76d1f41b8b30f9bf186f2352eb503f2fc491e700fd15760aefa8d182c"
+  },
+  "id": "Oe7JUvF9Jhg2DACY",
+  "tags": []
+}
